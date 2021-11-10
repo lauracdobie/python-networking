@@ -57,11 +57,16 @@ else:
     connection_socket = client_connect(ip_address, 8081)
     name = input("Enter your name > ")
     message = name + " connected to the server."
-    send_text(connection_socket, message) 
+    send_text(connection_socket, message)
+
+end = False 
      
-while True:
+while end == False:
     print("Waiting for message...")
     message = next(get_text(connection_socket))
     print(message)
-    reply = input("Enter your message > ")
-    send_text(connection_socket, reply)  
+    reply = input("Enter your message. Type end to exit. > ")
+    if reply.lower() == "end":
+        end = True
+        break
+    send_text(connection_socket, reply)
