@@ -13,11 +13,6 @@ def set_up_server(IP_address, port):
 
     return server_socket
 
-def accept_client_connection(server_socket):
-    connection_socket, address = server_socket.accept()
-    
-    return connection_socket
-
 def client_connect(IP_address, port):
     print("Connecting...")
     port_int = int(port)
@@ -49,50 +44,24 @@ def get_text(receiving_socket):
             yield message
             terminator_pos = buffer.find("\n")
 
-connected = False
-
 selection = input("Do you want to be a client or a server?")
 
 if selection.lower() == "server":
     server_socket = set_up_server("0.0.0.0", 8081)
     print("Waiting for client to connect")
     connection_socket, address = server_socket.accept()
-    print("Client connected")
+    print("Client connected at " + str(address) + ".")
 
-    connected = True
-
-    while connected == True:
-        reply = input("Enter your message. Type end to exit. >")
-        if reply.lower() == "end":
-            connected == False
-            break
-        send_text(connection_socket, reply)
-        print("Waiting for client message...")
-        client_message = next(get_text(connection_socket))
-        print(client_message)
-
-    connection_socket.close()
-    server_socket.close()
-
-
-
-if selection.lower() == "client":
-    ip_address = input("Enter an IP address to connect on>")
-    client = client_connect(ip_address, 8081)
-    print("You have connected to the server")
-    for message in get_text(client):
-            print(message) 
-    while connected == True:
-        reply = input("Enter your message. Type end to exit. >")
-        if reply.lower() == "end":
-            connected == False
-            break
-        send_text(client, reply)
-         
-        print("Waiting for server message...")
-        for message in get_text(client):
-            print(message)  
-
-    server_socket.close()
-    client.close()
-
+else:
+    ip_address = input("Enter an IP address to connect on > ")
+    connection_socket = client_connect(ip_address, 8081)
+    name = input("Enter your name > ")
+    message = name + " connected to the server."
+    send_text(connection_socket, message) 
+     
+while True:
+    print("Waiting for message...")
+    message = next(get_text(connection_socket))
+    print(message)
+    reply = input("Enter your message > ")
+    send_text(connection_socket, reply)  
