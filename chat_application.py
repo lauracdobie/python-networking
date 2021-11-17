@@ -1,10 +1,5 @@
 import socket
 
-# Ask if the user wants to be a client or a server.
-# If the user wants to be a server, set up a server and listen for a client connection
-# Set up a loop to get a message from the client and allow the user to enter a reply to send from the server, until the user types end.
-# If the user selected client, ask for an IP address to connect on.
-# Set up a loop to get a message from the server and allow the user to enter a reply to send from the client, until the user types end.
 def set_up_server(IP_address, port):
     port_int = int(port)
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
