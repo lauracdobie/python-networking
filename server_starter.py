@@ -30,7 +30,7 @@ class QuizGame(socketserver.BaseRequestHandler):
                 #Send question
                 send_binary(self.request, (1, q1.q))
             if command[0] == "ANS":
-                if command[1] == "Douglas Stuart":
+                if command[1].lower() == "douglas stuart":
                     send_binary(self.request, (2, "Correct!"))
                 else:
                     send_binary(self.request, (2, "Incorrect, the answer is " + q1.answer))
