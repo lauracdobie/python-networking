@@ -36,7 +36,11 @@ while playing:
             answer = input("Enter your answer > ")
             send_binary(quiz_server, ["ANS", answer])
         if response[0] == 2:
-            print(response[1])        
+            print(response[1])
+            send_binary(quiz_server, ["SCO", ""])     
+            # send_binary(quiz_server, ["QUES", ""])
+        if response[0] == 3:
+            print(response[1])
             send_binary(quiz_server, ["QUES", ""])
         if response[0] == 4:
             print(response[1])

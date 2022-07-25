@@ -36,6 +36,7 @@ class QuizGame(socketserver.BaseRequestHandler):
             if command[0] == "ANS":
                 if command[1].lower() == questions[question].answer.lower():
                     send_binary(self.request, (2, "Correct!"))
+                    score += 1
                 else:
                     send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer))
                 if question < len(questions) - 1:
@@ -43,6 +44,8 @@ class QuizGame(socketserver.BaseRequestHandler):
                 else:
                     send_binary(self.request, (4, "End of quiz!"))
                     break
+            if command[0] == "SCO":
+                send_binary(self.request, (3, "Your score is " + str(score)))
         #Your server code goes here
 
 
