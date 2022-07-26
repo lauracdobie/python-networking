@@ -19,8 +19,10 @@ Question = namedtuple('Question', ['q', 'answer'])
 q1 = Question("Who won the Booker Prize in 2020?", "Douglas Stuart")
 q2 = Question("Who wrote Circe?", "Madeleine Miller")
 q3 = Question("What is the name of the lion in The Lion, The Witch and The Wardrobe?", "Aslan")
+q4 = Question("Margaret Atwood's Hag-Seed is based on which Shakespeare play?", "The Tempest")
+q5 = Question("What is the name of the fictional Sicilian town where the Inspector Montalbano books set?", "Vigata")
 
-questions = [q1, q2, q3]
+questions = [q1, q2, q3, q4, q5]
 
 # The socketserver module uses 'Handlers' to interact with connections. When a client connects a version of this class is made to handle it.
 class QuizGame(socketserver.BaseRequestHandler):
@@ -42,11 +44,13 @@ class QuizGame(socketserver.BaseRequestHandler):
                 if question < len(questions) - 1:
                     question += 1
                 else:
-                    send_binary(self.request, (4, "End of quiz!"))
+                    send_binary(self.request, (4, "End of quiz! Your score is " + str(score)))
                     break
             if command[0] == "SCO":
                 send_binary(self.request, (3, "Your score is " + str(score)))
-        #Your server code goes here
+            if command[0] == "END":
+                send_binary(self.request, (4, "End of quiz! Your score is " + str(score)))
+                break    
 
 
 # Open the quiz server and bind it to a port - creating a socket

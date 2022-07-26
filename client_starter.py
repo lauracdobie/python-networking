@@ -15,6 +15,7 @@ print("Greetings, " + team_name + ", welcome to the quiz!")
 
 ip_address = input("Enter the IP address that the quiz is running on > ")
 print("Connecting to " + ip_address + "...")
+print("To exit the quiz at any time, type end")
 
 # A flag used to control the quiz loop.
 playing = True
@@ -34,11 +35,13 @@ while playing:
             # Display it to the user.
             print(response[1])
             answer = input("Enter your answer > ")
-            send_binary(quiz_server, ["ANS", answer])
+            if answer.lower() != "end":
+                send_binary(quiz_server, ["ANS", answer])
+                send_binary(quiz_server, ["SCO", ""]) 
+            else:
+                send_binary(quiz_server, ["END", ""])
         if response[0] == 2:
             print(response[1])
-            send_binary(quiz_server, ["SCO", ""])     
-            # send_binary(quiz_server, ["QUES", ""])
         if response[0] == 3:
             print(response[1])
             send_binary(quiz_server, ["QUES", ""])
@@ -46,3 +49,5 @@ while playing:
             print(response[1])
             playing = False
             break
+
+quiz_server.close()
