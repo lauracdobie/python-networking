@@ -31,6 +31,7 @@ class QuizGame(socketserver.BaseRequestHandler):
         #Retrieve Command
         score = 0
         question = 0
+        lives = 3
         for command in get_binary(self.request):
             if command[0] == "QUES":
                 #Send question
@@ -40,7 +41,13 @@ class QuizGame(socketserver.BaseRequestHandler):
                     send_binary(self.request, (2, "Correct!"))
                     score += 1
                 else:
-                    send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer))
+                    if lives > 0:
+                        lives -= 1
+                        send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer + ". You have " + str(lives) + " lives left."))
+                    else:
+                        send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer))
+                        send_binary(self.request, (4, "End of quiz! Your score is " + str(score)))
+                        break
                 if question < len(questions) - 1:
                     question += 1
                 else:
