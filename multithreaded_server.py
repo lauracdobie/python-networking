@@ -2,6 +2,7 @@
 import socketserver
 from collections import namedtuple
 from fl_networking_tools import get_binary, send_binary
+from threading import Event
 
 '''
 Commands:
@@ -24,6 +25,10 @@ q5 = Question("What is the name of the fictional Sicilian town where the Inspect
 
 questions = [q1, q2, q3, q4, q5]
 
+NUMBER_OF_PLAYERS = 2
+players = []
+ready_to_start = Event()
+
 # The socketserver module uses 'Handlers' to interact with connections. When a client connects a version of this class is made to handle it.
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
@@ -36,6 +41,21 @@ class QuizGame(socketserver.BaseRequestHandler):
         question = 0
         lives = 3
         for command in get_binary(self.request):
+            global players # Make sure this is global
+            if command[0] == "JOIN":
+                team_name = command[1]
+                players.append(team_name)
+
+                if len(players) == NUMBER_OF_PLAYERS:
+                    # If correct number of players
+                    ready_to_start.set()
+                    # Trigger the event
+                    # Send the confirmation response
+                    send_binary(self.request, [5, "Let's go! To exit the quiz at any time, type end"])
+                else:
+                    send_binary(self.request, [5, "Waiting for others to join..."])
+                # Wait for the ready to start event
+                ready_to_start.wait()
             if command[0] == "QUES":
                 #Send question
                 send_binary(self.request, (1, questions[question].q))
