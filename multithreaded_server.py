@@ -1,9 +1,5 @@
-# The socket server library is a more powerful module for handling sockets, it will help you set up and manage multiple clients in the next step
-from asyncio import wait_for
 import socketserver
 from collections import namedtuple
-from tkinter import W
-from black import T
 from fl_networking_tools import get_binary, send_binary
 from threading import Event
 from player import Player
@@ -52,14 +48,8 @@ class QuizGame(socketserver.BaseRequestHandler):
 
             if command[0] == "JOIN":
                 team_name = command[1]
-                if len(players) == 0:
-                    player_1 = Player(team_name)
-                    players.append(player_1)
-                    print("Added player: " + str(player_1.team_name))
-                else:
-                    player_2 = Player(team_name)
-                    players.append(player_2)
-                    print("Added player: " + str(player_2.team_name))
+                player = Player(team_name)
+                players.append(player)
 
                 if len(players) == NUMBER_OF_PLAYERS:
                     # If correct number of players
@@ -76,51 +66,41 @@ class QuizGame(socketserver.BaseRequestHandler):
                 send_binary(self.request, (1, questions[question].q))
             if command[0] == "ANS":
                 answers += 1
-                print("Answers is " + str(answers))
                 current_player = get_current_player(players, command[1][1])
-                print("Current player: " + str(current_player.team_name))
-                if command[1][0].lower() == questions[question].answer.lower():
-                    current_player.score += 1
-                    print("Current player is " + current_player.team_name + " Current player score is " + str(current_player.score))
-                else:
-                    if current_player.lives > 0:
-                        current_player.lives -= 1
-                        print("Current player is " + current_player.team_name + " Current player score is " + str(current_player.score) + " Current player lives remaining: " + str(current_player.lives))
-                    else:
-                        send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer))
-                        send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
-                        break
+
                 if answers < NUMBER_OF_PLAYERS:
                     send_binary(self.request, [5, "Waiting for others to answer..."])
                     wait_for_answers.wait()
 
                 wait_for_answers.set()
-                print("Answers is " + str(answers))
                 answers = 0
-                print("Answers is " + str(answers))
 
                 if wait_for_answers.isSet():
                     if command[1][0].lower() == questions[question].answer.lower():
+                        current_player.score += 1
                         send_binary(self.request, (2, "Correct!"))
                     else:
-                        send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer + "."))
+                        if current_player.lives > 0:
+                            current_player.lives -= 1
+                            send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer + "."))
+                        else:
+                            send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer))
+                            send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
+                            break
 
                 if question < len(questions) - 1:
                     question += 1
-                    print("Question index is " + str(question))
                     wait_for_answers.clear()
                 else:
                     send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
                     break
-                # send_binary(self.request, [5, "Waiting for others to answer..."])
-                # wait_for_answers.wait()
+
             if command[0] == "SCO":
                 current_player = get_current_player(players, command[1])
-                print("Current player: " + str(current_player.team_name))
                 send_binary(self.request, (3, "Your score is " + str(current_player.score)))
+
             if command[0] == "END":
                 current_player = get_current_player(players, command[1])
-                print("Current player: " + str(current_player.team_name))
                 send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
                 break    
 
@@ -129,6 +109,7 @@ def get_current_player(players, team_name_in_command):
         if player.team_name == team_name_in_command:
             current_player = player
     return current_player
+
 # Open the quiz server and bind it to a port - creating a socket
 # This works similarly to the sockets you used before, but you have to give it both an address pair (IP and port) and a handler for the server.
 quiz_server = ThreadedTCPServer(('127.0.0.1', 2065), QuizGame)
