@@ -39,10 +39,10 @@ while playing:
             print(response[1])
             answer = input("Enter your answer > ")
             if answer.lower() != "end":
-                send_binary(quiz_server, ["ANS", answer])
-                send_binary(quiz_server, ["SCO", ""]) 
+                send_binary(quiz_server, ["ANS", [answer, team_name]])
+                send_binary(quiz_server, ["SCO", team_name]) 
             else:
-                send_binary(quiz_server, ["END", ""])
+                send_binary(quiz_server, ["END", team_name])
         if response[0] == 2:
             print(response[1])
         if response[0] == 3:
