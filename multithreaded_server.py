@@ -95,29 +95,20 @@ class QuizGame(socketserver.BaseRequestHandler):
                     wait_for_answers.wait()
 
                 wait_for_answers.set()
+                print("Answers is " + str(answers))
                 answers = 0
                 print("Answers is " + str(answers))
-                if command[1][0].lower() == questions[question].answer.lower():
-                    send_binary(self.request, (2, "Correct!"))
-                else:
-                    send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer + "."))
-                        
-                # if len(answers) == NUMBER_OF_PLAYERS:
-                #     wait_for_answers.set()
-                #     answers = []
-                #     print("Answers is " + str(answers))
-                #     print("Commands is: " + str(commands))
-                #     while len(commands) > 0:
-                #         for command in commands:
-                #             if command[1][0].lower() == questions[question].answer.lower():
-                #                 send_binary(self.request, (2, "Correct!"))
-                #             else:
-                #                 send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer + "."))
-                #         commands = []
+
+                if wait_for_answers.isSet():
+                    if command[1][0].lower() == questions[question].answer.lower():
+                        send_binary(self.request, (2, "Correct!"))
+                    else:
+                        send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer + "."))
 
                 if question < len(questions) - 1:
                     question += 1
                     print("Question index is " + str(question))
+                    wait_for_answers.clear()
                 else:
                     send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
                     break
