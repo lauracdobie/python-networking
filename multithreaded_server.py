@@ -7,9 +7,11 @@ from player import Player
 '''
 Commands:
 PLACE YOUR COMMANDS HERE
+JOIN - join command
 QUES - question command
 ANS - answer command
 SCO - score command
+STAT - stat command
 END - end command
 '''
 
@@ -28,7 +30,7 @@ questions = [q1, q2, q3, q4, q5]
 NUMBER_OF_PLAYERS = 2
 players = []
 answers = 0
-commands = []
+current_question = None
 
 ready_to_start = Event()
 wait_for_answers = Event()
@@ -42,6 +44,8 @@ class QuizGame(socketserver.BaseRequestHandler):
     def handle(self):
         #Retrieve Command
         question = 0
+        questions_answered = 0
+
         for command in get_binary(self.request):
             global players # Make sure this is global
             global answers
@@ -61,36 +65,38 @@ class QuizGame(socketserver.BaseRequestHandler):
                     send_binary(self.request, [5, "Waiting for others to join..."])
                 # Wait for the ready to start event
                 ready_to_start.wait()
+            
             if command[0] == "QUES":
+                wait_for_answers.clear()
                 #Send question
                 send_binary(self.request, (1, questions[question].q))
+            
             if command[0] == "ANS":
                 answers += 1
                 current_player = get_current_player(players, command[1][1])
+                                
+                if command[1][0].lower() == questions[question].answer.lower():
+                    current_player.score += 1
+                    send_binary(self.request, (2, "Correct!"))
+                else:
+                    if current_player.lives > 0:
+                        current_player.lives -= 1
+                        send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer + "."))
+                    else:
+                        send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer))
+                        send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
+                        break
+                
+                questions_answered += 1
+                if answers == NUMBER_OF_PLAYERS:
+                    answers = 0
+                    wait_for_answers.set()
 
-                if answers < NUMBER_OF_PLAYERS:
-                    send_binary(self.request, [5, "Waiting for others to answer..."])
+                else:
                     wait_for_answers.wait()
 
-                wait_for_answers.set()
-                answers = 0
-
-                if wait_for_answers.isSet():
-                    if command[1][0].lower() == questions[question].answer.lower():
-                        current_player.score += 1
-                        send_binary(self.request, (2, "Correct!"))
-                    else:
-                        if current_player.lives > 0:
-                            current_player.lives -= 1
-                            send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer + "."))
-                        else:
-                            send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer))
-                            send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
-                            break
-
                 if question < len(questions) - 1:
-                    question += 1
-                    wait_for_answers.clear()
+                        question += 1
                 else:
                     send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
                     break
@@ -98,7 +104,13 @@ class QuizGame(socketserver.BaseRequestHandler):
             if command[0] == "SCO":
                 current_player = get_current_player(players, command[1])
                 send_binary(self.request, (3, "Your score is " + str(current_player.score)))
-
+            
+            if command[0] == "STAT":
+                if ready_to_start.isSet() and not wait_for_answers.isSet():
+                    send_binary(self.request, [6, "Quiz is starting!"])
+                elif ready_to_start.isSet() and wait_for_answers.isSet():
+                    send_binary(self.request, [6, "Quiz continuing."])
+            
             if command[0] == "END":
                 current_player = get_current_player(players, command[1])
                 send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
