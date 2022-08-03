@@ -3,6 +3,7 @@ from collections import namedtuple
 from fl_networking_tools import get_binary, send_binary
 from threading import Event
 from player import Player
+from random import choice
 
 '''
 Commands:
@@ -49,6 +50,8 @@ class QuizGame(socketserver.BaseRequestHandler):
         for command in get_binary(self.request):
             global players # Make sure this is global
             global answers
+            global current_question
+            questions
 
             if command[0] == "JOIN":
                 team_name = command[1]
@@ -67,39 +70,49 @@ class QuizGame(socketserver.BaseRequestHandler):
                 ready_to_start.wait()
             
             if command[0] == "QUES":
-                wait_for_answers.clear()
-                #Send question
-                send_binary(self.request, (1, questions[question].q))
+                if current_question == None:
+                    print("Inside current_question == None")
+                    current_question = choice(questions)
+                    print(str(current_question))
+                    # Un-set the event for answers
+                    wait_for_answers.clear()
+                    # Send the question text
+                send_binary(self.request, (1, current_question.q))
+                # send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
+                # break
             
             if command[0] == "ANS":
                 answers += 1
                 current_player = get_current_player(players, command[1][1])
                                 
-                if command[1][0].lower() == questions[question].answer.lower():
+                if command[1][0].lower() == current_question.answer.lower():
                     current_player.score += 1
                     send_binary(self.request, (2, "Correct!"))
                 else:
                     if current_player.lives > 0:
                         current_player.lives -= 1
-                        send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer + "."))
+                        send_binary(self.request, (2, "Incorrect, the answer is " + current_question.answer + "."))
                     else:
-                        send_binary(self.request, (2, "Incorrect, the answer is " + questions[question].answer))
+                        send_binary(self.request, (2, "Incorrect, the answer is " + current_question.answer))
                         send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
                         break
                 
-                questions_answered += 1
                 if answers == NUMBER_OF_PLAYERS:
                     answers = 0
+                    # Remove the current question from the list
+                    questions.remove(current_question)
+                    print(str(current_question) + " removed from list. " + str(len(questions)) + " remaining.")
+                    # Reset the current question variable
+                    current_question = None
                     wait_for_answers.set()
 
-                else:
-                    wait_for_answers.wait()
+                wait_for_answers.wait()
 
-                if question < len(questions) - 1:
-                        question += 1
-                else:
-                    send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
-                    break
+                # if question < len(questions) - 1:
+                #         question += 1
+                # else:
+                #     send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
+                #     break
 
             if command[0] == "SCO":
                 current_player = get_current_player(players, command[1])
