@@ -44,8 +44,6 @@ class QuizGame(socketserver.BaseRequestHandler):
     # The handle method is what actually handles the connection
     def handle(self):
         #Retrieve Command
-        question = 0
-        questions_answered = 0
 
         for command in get_binary(self.request):
             global players # Make sure this is global
@@ -71,15 +69,16 @@ class QuizGame(socketserver.BaseRequestHandler):
             
             if command[0] == "QUES":
                 if current_question == None:
-                    print("Inside current_question == None")
-                    current_question = choice(questions)
-                    print(str(current_question))
+                    if len(questions) > 0:
+                        current_question = choice(questions)
                     # Un-set the event for answers
                     wait_for_answers.clear()
+                if current_question != None:
                     # Send the question text
-                send_binary(self.request, (1, current_question.q))
-                # send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
-                # break
+                    send_binary(self.request, (1, current_question.q))
+                else:
+                    send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
+                    break
             
             if command[0] == "ANS":
                 answers += 1
@@ -101,18 +100,11 @@ class QuizGame(socketserver.BaseRequestHandler):
                     answers = 0
                     # Remove the current question from the list
                     questions.remove(current_question)
-                    print(str(current_question) + " removed from list. " + str(len(questions)) + " remaining.")
                     # Reset the current question variable
                     current_question = None
                     wait_for_answers.set()
 
                 wait_for_answers.wait()
-
-                # if question < len(questions) - 1:
-                #         question += 1
-                # else:
-                #     send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
-                #     break
 
             if command[0] == "SCO":
                 current_player = get_current_player(players, command[1])
