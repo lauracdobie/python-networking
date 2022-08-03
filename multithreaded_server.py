@@ -32,6 +32,7 @@ NUMBER_OF_PLAYERS = 2
 players = []
 answers = 0
 current_question = None
+current_player = None
 
 ready_to_start = Event()
 wait_for_answers = Event()
@@ -49,6 +50,7 @@ class QuizGame(socketserver.BaseRequestHandler):
             global players # Make sure this is global
             global answers
             global current_question
+            global current_player
             questions
 
             if command[0] == "JOIN":
@@ -77,7 +79,7 @@ class QuizGame(socketserver.BaseRequestHandler):
                     # Send the question text
                     send_binary(self.request, (1, current_question.q))
                 else:
-                    send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
+                    send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score) + "."))
                     break
             
             if command[0] == "ANS":
@@ -86,17 +88,21 @@ class QuizGame(socketserver.BaseRequestHandler):
                                 
                 if command[1][0].lower() == current_question.answer.lower():
                     current_player.score += 1
-                    send_binary(self.request, (2, "Correct!"))
+                    send_binary(self.request, (2, "Correct! Your score is " + str(current_player.score) + "."))
                 else:
                     if current_player.lives > 0:
                         current_player.lives -= 1
-                        send_binary(self.request, (2, "Incorrect, the answer is " + current_question.answer + "."))
+                        if current_player.lives != 1:
+                            send_binary(self.request, (2, "Incorrect, the answer is " + current_question.answer + ". You have " + str(current_player.lives) + " lives remaining. Your score is " + str(current_player.score) + "."))
+                        else:
+                            send_binary(self.request, (2, "Incorrect, the answer is " + current_question.answer + ". You have 1 life remaining. Your score is " + str(current_player.score) + "."))
                     else:
-                        send_binary(self.request, (2, "Incorrect, the answer is " + current_question.answer))
-                        send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
-                        break
+                        send_binary(self.request, (2, "Incorrect, the answer is " + current_question.answer + ". Your score is " + str(current_player.score) + "."))
+                        players.remove(current_player)
+                        send_binary(self.request, (4, "Game over!"))
+                        answers -= 1
                 
-                if answers == NUMBER_OF_PLAYERS:
+                if answers == len(players):
                     answers = 0
                     # Remove the current question from the list
                     questions.remove(current_question)

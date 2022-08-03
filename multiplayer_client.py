@@ -27,7 +27,6 @@ quiz_server.connect((ip_address, 2065))
 
 # Sending a command to the server.
 send_binary(quiz_server, ["JOIN", team_name])
-# send_binary(quiz_server, ["QUES", ""])
 
 while playing:
     # The get_binary function returns a list of messages - loop over them
@@ -40,14 +39,13 @@ while playing:
             send_binary(quiz_server, ['STAT', ""])
         if response[0] == 6: # Server says the client can request a question
             print(response[1]) # Display the accompanying message
-            send_binary(quiz_server, ['QUES', ""])
+            send_binary(quiz_server, ['QUES', team_name])
         if response[0] == 1: # The question response
             # Display it to the user.
             print(response[1])
             answer = input("Enter your answer > ")
             if answer.lower() != "end":
                 send_binary(quiz_server, ["ANS", [answer, team_name]])
-                send_binary(quiz_server, ["SCO", team_name])
                 send_binary(quiz_server, ['STAT', ""]) 
             else:
                 send_binary(quiz_server, ["END", team_name])
