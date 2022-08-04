@@ -43,7 +43,9 @@ while playing:
         if response[0] == 1: # The question response
             # Display it to the user.
             print(response[1])
-            answer = input("Enter your answer > ")
+            for option in range(len(response[2])):
+                print("Option: " + str(response[2][option]))
+            answer = input("Enter your option > ")
             if answer.lower() != "end":
                 send_binary(quiz_server, ["ANS", [answer, team_name]])
                 send_binary(quiz_server, ['STAT', ""])

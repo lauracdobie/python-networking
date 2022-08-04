@@ -18,13 +18,13 @@ END - end command
 
 # Named tuples are extensions of the tuple structure, with contents you can refer to by name. In this case, the question will be held in a variable named q and the answer in answer.
 # This is just the set up of the question - it will be sent to the client using the send_binary function when a request is made.
-Question = namedtuple('Question', ['q', 'answer'])
+Question = namedtuple('Question', ['q', 'answer', 'options'])
 
-q1 = Question("Who won the Booker Prize in 2020?", "Douglas Stuart")
-q2 = Question("Who wrote Circe?", "Madeleine Miller")
-q3 = Question("What is the name of the lion in The Lion, The Witch and The Wardrobe?", "Aslan")
-q4 = Question("Margaret Atwood's Hag-Seed is based on which Shakespeare play?", "The Tempest")
-q5 = Question("What is the name of the fictional Sicilian town where the Inspector Montalbano books set?", "Vigata")
+q1 = Question("Who won the Booker Prize in 2020?", "Douglas Stuart", ["Kazuo Ishiguro", "Bernardine Evaristo", "Douglas Stuart", "Jon MacGregor"])
+q2 = Question("Who wrote Circe?", "Madeleine Miller", ["Madeleine Miller", "Pat Barker", "Ann Patchet", "Stephen Fry"])
+q3 = Question("What is the name of the lion in The Lion, The Witch and The Wardrobe?", "Aslan", ["Leonardo", "Macavity", "Fluffy", "Aslan"])
+q4 = Question("Margaret Atwood's Hag-Seed is based on which Shakespeare play?", "The Tempest", ["Hamlet", "Twelfth Night", "The Tempest", "The Winter's Tale"])
+q5 = Question("What is the name of the fictional Sicilian town where the Inspector Montalbano books set?", "Vigata", ["Punta Secca", "Vigata", "Palermita", "Ragusa"])
 
 questions = [q1, q2, q3, q4, q5]
 
@@ -80,7 +80,7 @@ class QuizGame(socketserver.BaseRequestHandler):
                     wait_for_answers.clear()
                 if current_question != None:
                     # Send the question text
-                    send_binary(self.request, (1, current_question.q))
+                    send_binary(self.request, (1, current_question.q, current_question.options))
                 else:
                     send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score) + "."))
                     break
