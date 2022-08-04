@@ -33,6 +33,7 @@ players = []
 answers = 0
 current_question = None
 current_player = None
+scores = {}
 
 ready_to_start = Event()
 wait_for_answers = Event()
@@ -51,12 +52,14 @@ class QuizGame(socketserver.BaseRequestHandler):
             global answers
             global current_question
             global current_player
+            global scores
             questions
 
             if command[0] == "JOIN":
                 team_name = command[1]
                 player = Player(team_name)
                 players.append(player)
+                scores[team_name] = 0
 
                 if len(players) == NUMBER_OF_PLAYERS:
                     # If correct number of players
@@ -89,6 +92,8 @@ class QuizGame(socketserver.BaseRequestHandler):
                 if command[1][0].lower() == current_question.answer.lower():
                     current_player.score += 1
                     send_binary(self.request, (2, "Correct! Your score is " + str(current_player.score) + "."))
+                    scores[current_player.team_name] += 1
+                    print("Scores: " + str(scores))
                 else:
                     if current_player.lives > 0:
                         current_player.lives -= 1
