@@ -46,13 +46,14 @@ while playing:
             answer = input("Enter your answer > ")
             if answer.lower() != "end":
                 send_binary(quiz_server, ["ANS", [answer, team_name]])
-                send_binary(quiz_server, ['STAT', ""]) 
+                send_binary(quiz_server, ['STAT', ""])
+                send_binary(quiz_server, ["SCO", ""]) 
             else:
                 send_binary(quiz_server, ["END", team_name])
         if response[0] == 2:
             print(response[1])
         if response[0] == 3:
-            print(response[1])
+            print("Scores are: " + response[1])
         if response[0] == 4:
             print(response[1])
             playing = False

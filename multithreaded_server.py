@@ -93,7 +93,6 @@ class QuizGame(socketserver.BaseRequestHandler):
                     current_player.score += 1
                     send_binary(self.request, (2, "Correct! Your score is " + str(current_player.score) + "."))
                     scores[current_player.team_name] += 1
-                    print("Scores: " + str(scores))
                 else:
                     if current_player.lives > 0:
                         current_player.lives -= 1
@@ -118,8 +117,7 @@ class QuizGame(socketserver.BaseRequestHandler):
                 wait_for_answers.wait()
 
             if command[0] == "SCO":
-                current_player = get_current_player(players, command[1])
-                send_binary(self.request, (3, "Your score is " + str(current_player.score)))
+                send_binary(self.request, (3, str(scores)))
             
             if command[0] == "STAT":
                 if ready_to_start.isSet() and not wait_for_answers.isSet():
