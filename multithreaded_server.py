@@ -113,7 +113,6 @@ class QuizGame(socketserver.BaseRequestHandler):
                     # Reset the current question variable
                     current_question = None
                     wait_for_answers.set()
-
                 wait_for_answers.wait()
 
             if command[0] == "SCO":
@@ -128,6 +127,13 @@ class QuizGame(socketserver.BaseRequestHandler):
             if command[0] == "END":
                 current_player = get_current_player(players, command[1])
                 players.remove(current_player)
+                if answers == len(players):
+                    answers = 0
+                    # Remove the current question from the list
+                    questions.remove(current_question)
+                    # Reset the current question variable
+                    current_question = None
+                    wait_for_answers.set()
                 send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
                 break    
 

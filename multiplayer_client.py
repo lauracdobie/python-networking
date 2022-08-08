@@ -59,6 +59,7 @@ while playing:
         if response[0] == 4:
             print(response[1])
             playing = False
+            quiz_server.close()
             break
 
 quiz_server.close()
