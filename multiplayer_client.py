@@ -1,6 +1,7 @@
 import socket
 # Import the functions from the networking tools module
 from fl_networking_tools import get_binary, send_binary
+from random import shuffle
 
 '''
 Responses
@@ -43,6 +44,7 @@ while playing:
         if response[0] == 1: # The question response
             # Display it to the user.
             print(response[1])
+            shuffle(response[2])
             for option in range(len(response[2])):
                 print("Option: " + str(response[2][option]))
             answer = input("Enter your option > ")
