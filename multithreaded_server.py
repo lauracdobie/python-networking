@@ -127,6 +127,7 @@ class QuizGame(socketserver.BaseRequestHandler):
             
             if command[0] == "END":
                 current_player = get_current_player(players, command[1])
+                players.remove(current_player)
                 send_binary(self.request, (4, "End of quiz! Your score is " + str(current_player.score)))
                 break    
 
